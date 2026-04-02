@@ -9,8 +9,7 @@
   <meta name="theme-color" content="#0a0a0f">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <title>Sensors POC v0.1.0</title>
-  <style>
+  <title>Sensors POC v0.1.1
     @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
 
     :root {
@@ -794,7 +793,7 @@ function armThrow() {
     const mag = Math.sqrt((a.x||0)**2 + (a.y||0)**2 + (a.z||0)**2);
     const force = mag / 9.81; // normalize to g-force approx
 
-    if (force > 1.8 && !gestureActive) {
+    if (force > 2.5 && !gestureActive) {
       gestureActive = true;
       gestureStartTime = Date.now();
     }
@@ -827,10 +826,10 @@ function finishThrow() {
   window.removeEventListener('deviceorientation', throwOriListener);
 
   // Score formula
-  const accScore  = Math.min(peakAcc / 35, 1);          // normalize, cap at 1
-  const rotScore  = Math.min(peakRot / 90, 1);           // rotation bonus
+  const accScore  = Math.min(peakAcc / 80, 1);          // normalize, cap at 1
+  const rotScore  = Math.min(peakRot / 180, 1);          // rotation bonus
   const rawForce  = (accScore * 0.7 + rotScore * 0.3);   // weighted blend
-  const distance  = Math.round(5 + rawForce * rawForce * 95); // 5m → 100m quadratic
+  const distance  = Math.round(5 + rawForce * rawForce * 145); // 5m → 150m quadratic
   const forcePct  = Math.round(rawForce * 100);
 
   updateForceBar(forcePct);
