@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Sensors">
+  <meta name="theme-color" content="#0a0a0f">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <title>Sensors POC</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --surface2: #1c1c27;
+      --border: rgba(255,255,255,0.07);
+      --blue: #378ADD;
+      --blue-dim: rgba(55,138,221,0.15);
+      --blue-glow: rgba(55,138,221,0.3);
+      --green: #5DCAA5;
+      --green-dim: rgba(93,202,165,0.15);
+      --amber: #EF9F27;
+      --amber-dim: rgba(239,159,39,0.15);
+      --red: #E24B4A;
+      --red-dim: rgba(226,75,74,0.15);
+      --text: #e8e8f0;
+      --text-muted: #6b6b80;
+      --text-dim: #3a3a4a;
+      --radius: 16px;
+      --radius-sm: 10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      overscroll-behavior: none;
+    }
+
+    .app {
+      max-width: 430px;
+      margin: 0 auto;
+      padding: env(safe-area-inset-top, 20px) 16px env(safe-area-inset-bottom, 20px);
+      min-height: 100vh;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 0 24px;
+    }
+
+    .header-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--blue-dim);
+      border: 0.5px solid var(--blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .header-icon svg { width: 20px; height: 20px; }
+
+    header h1 {
+      font-size: 20px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+    }
+
+    header p {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* install banner */
+    .install-banner {
+      display: none;
+      background: var(--blue-dim);
+      border: 0.5px solid var(--blue);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: var(--blue);
+      align-items: center;
+      gap: 8px;
+    }
+    .install-banner.show { display: flex; }
+    .install-banner button {
+      margin-left: auto;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      margin-bottom: 12px;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-family: 'DM Mono', monospace;
+    }
+
+    .pill {
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+    .pill-off  { background: var(--surface2); color: var(--text-muted); }
+    .pill-on   { background: var(--green-dim); color: var(--green); }
+    .pill-pulse { background: var(--blue-dim); color: var(--blue); animation: blink 1.2s infinite; }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+    /* Metrics */
+    .metric-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .metric {
+      background: var(--surface2);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+      text-align: center;
+    }
+
+    .metric-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: 'DM Mono', monospace;
+      margin-bottom: 4px;
+    }
+
+    .metric-val {
+      font-size: 20px;
+      font-weight: 500;
+      font-family: 'DM Mono', monospace;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .metric-unit {
+      font-size: 10px;
+      color: var(--text-dim);
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* Buttons */
+    .btn-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .btn {
+      background: var(--surface2);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: transform 0.1s, background 0.1s;
+    }
+    .btn:active { transform: scale(0.96); background: rgba(255,255,255,0.05); }
+    .btn-blue { background: var(--blue-dim); border-color: rgba(55,138,221,0.3); color: var(--blue); }
+    .btn-red  { background: var(--red-dim);  border-color: rgba(226,75,74,0.3);  color: var(--red); }
+    .btn-wide { grid-column: span 3; }
+    .btn:disabled { opacity: 0.4; pointer-events: none; }
+
+    .feedback {
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 10px;
+      min-height: 16px;
+    }
+
+    /* Shake counter */
+    .shake-display {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      justify-content: center;
+      padding: 10px 0 14px;
+    }
+    .shake-num {
+      font-size: 48px;
+      font-weight: 300;
+      font-family: 'DM Mono', monospace;
+      color: var(--text);
+      line-height: 1;
+    }
+    .shake-label {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Ball tilt */
+    .tilt-container {
+      display: flex;
+      justify-content: center;
+      margin: 6px 0 14px;
+    }
+
+    .tilt-area {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      border: 0.5px solid var(--border);
+      background: var(--surface2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tilt-crosshair {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%; height: 100%;
+      pointer-events: none;
+    }
+
+    .tilt-line-h, .tilt-line-v {
+      position: absolute;
+      background: var(--text-dim);
+    }
+    .tilt-line-h { width: 100%; height: 0.5px; top: 50%; }
+    .tilt-line-v { height: 100%; width: 0.5px; left: 50%; }
+
+    .tilt-ball {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--blue);
+      box-shadow: 0 0 12px var(--blue-glow);
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      transition: top 0.08s, left 0.08s;
+    }
+
+    /* install hint */
+    .install-hint {
+      text-align: center;
+      padding: 20px 0 8px;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="header-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="1.5" stroke-linecap="round">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+      </svg>
+    </div>
+    <div>
+      <h1>Sensors POC</h1>
+      <p>iPhone · WebAPI</p>
+    </div>
+  </header>
+
+  <div class="install-banner" id="install-banner">
+    <span>Installer sur l'écran d'accueil</span>
+    <button id="install-btn">Installer</button>
+  </div>
+
+  <!-- Vibration -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Vibration</span>
+      <span class="pill" id="vib-pill">—</span>
+    </div>
+    <div class="btn-grid">
+      <button class="btn" onclick="vibrate('tap')">Tap</button>
+      <button class="btn" onclick="vibrate('notif')">Notif</button>
+      <button class="btn btn-red" onclick="vibrate('alert')">Alerte</button>
+      <button class="btn" onclick="vibrate('double')">Double</button>
+      <button class="btn" onclick="vibrate('rythm')">Rythme</button>
+      <button class="btn btn-blue" onclick="vibrate('sos')">SOS</button>
+    </div>
+    <div class="feedback" id="vib-log">—</div>
+  </div>
+
+  <!-- Accéléromètre -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Accéléromètre</span>
+      <span class="pill pill-off" id="acc-pill">OFF</span>
+    </div>
+    <div class="metric-row">
+      <div class="metric"><div class="metric-label">X</div><div class="metric-val" id="ax">—</div><div class="metric-unit">m/s²</div></div>
+      <div class="metric"><div class="metric-label">Y</div><div class="metric-val" id="ay">—</div><div class="metric-unit">m/s²</div></div>
+      <div class="metric"><div class="metric-label">Z</div><div class="metric-val" id="az">—</div><div class="metric-unit">m/s²</div></div>
+    </div>
+    <div class="shake-display">
+      <span class="shake-num" id="shake-num">0</span>
+      <span class="shake-label">secousses</span>
+    </div>
+    <div class="btn-grid">
+      <button class="btn btn-wide btn-blue" id="btn-acc" onclick="startAccel()">Activer</button>
+    </div>
+  </div>
+
+  <!-- Gyroscope / Orientation -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Gyroscope · Orientation</span>
+      <span class="pill pill-off" id="gyr-pill">OFF</span>
+    </div>
+    <div class="tilt-container">
+      <div class="tilt-area">
+        <div class="tilt-line-h"></div>
+        <div class="tilt-line-v"></div>
+        <div class="tilt-ball" id="tilt-ball"></div>
+      </div>
+    </div>
+    <div class="metric-row">
+      <div class="metric"><div class="metric-label">Alpha</div><div class="metric-val" id="oa">—</div><div class="metric-unit">°</div></div>
+      <div class="metric"><div class="metric-label">Beta</div><div class="metric-val" id="ob">—</div><div class="metric-unit">°</div></div>
+      <div class="metric"><div class="metric-label">Gamma</div><div class="metric-val" id="og">—</div><div class="metric-unit">°</div></div>
+    </div>
+    <div class="btn-grid">
+      <button class="btn btn-wide btn-blue" id="btn-gyr" onclick="startGyro()">Activer</button>
+    </div>
+  </div>
+
+  <div class="install-hint" id="install-hint" style="display:none">
+    Safari → Partager → Sur l'écran d'accueil
+  </div>
+
+</div>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js');
+  });
+}
+
+// ── PWA install ──────────────────────────────────────────────
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-banner').classList.add('show');
+});
+
+document.getElementById('install-btn').addEventListener('click', () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => {
+      deferredPrompt = null;
+      document.getElementById('install-banner').classList.remove('show');
+    });
+  }
+});
+
+// Safari standalone check
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isStandalone = window.navigator.standalone;
+if (isIOS && !isStandalone) {
+  document.getElementById('install-hint').style.display = 'block';
+}
+
+// ── Vibration ────────────────────────────────────────────────
+const patterns = {
+  tap:   [30],
+  notif: [100, 50, 100],
+  alert: [300, 100, 300],
+  double:[100, 80, 100],
+  rythm: [100, 50, 50, 50, 100, 50, 200],
+  sos:   [100,100,100,100,300,100,300,100,300,100,100,100,100,100,100]
+};
+const vibNames = { tap:'Tap', notif:'Notification', alert:'Alerte', double:'Double', rythm:'Rythme', sos:'SOS' };
+
+function vibrate(type) {
+  const pill = document.getElementById('vib-pill');
+  const log  = document.getElementById('vib-log');
+  if (!('vibrate' in navigator)) {
+    pill.textContent = 'N/A'; pill.className = 'pill pill-off';
+    log.textContent = 'Non supporté sur cet appareil';
+    return;
+  }
+  navigator.vibrate(patterns[type]);
+  pill.textContent = vibNames[type]; pill.className = 'pill pill-pulse';
+  log.textContent = '› ' + vibNames[type] + ' envoyé';
+  setTimeout(() => { pill.textContent = 'OK'; pill.className = 'pill pill-on'; }, 1500);
+}
+
+// Init vibration pill
+if ('vibrate' in navigator) {
+  const p = document.getElementById('vib-pill');
+  p.textContent = 'READY'; p.className = 'pill pill-on';
+}
+
+// ── Accéléromètre ────────────────────────────────────────────
+let shakeCount = 0;
+let lastAcc = { x: 0, y: 0, z: 0 };
+
+async function startAccel() {
+  const pill = document.getElementById('acc-pill');
+  const btn  = document.getElementById('btn-acc');
+  if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+    try {
+      const perm = await DeviceMotionEvent.requestPermission();
+      if (perm !== 'granted') { pill.textContent = 'REFUSÉ'; return; }
+    } catch(e) { pill.textContent = 'ERR'; return; }
+  }
+  pill.textContent = 'ON'; pill.className = 'pill pill-pulse';
+  btn.textContent = 'Actif'; btn.disabled = true;
+
+  window.addEventListener('devicemotion', e => {
+    const a = e.accelerationIncludingGravity;
+    if (!a) return;
+    const x = +(a.x||0).toFixed(1), y = +(a.y||0).toFixed(1), z = +(a.z||0).toFixed(1);
+    document.getElementById('ax').textContent = x;
+    document.getElementById('ay').textContent = y;
+    document.getElementById('az').textContent = z;
+    const delta = Math.abs(x - lastAcc.x) + Math.abs(y - lastAcc.y) + Math.abs(z - lastAcc.z);
+    if (delta > 15) {
+      shakeCount++;
+      document.getElementById('shake-num').textContent = shakeCount;
+      if ('vibrate' in navigator) navigator.vibrate(40);
+    }
+    lastAcc = { x, y, z };
+  });
+}
+
+// ── Gyroscope / Orientation ──────────────────────────────────
+async function startGyro() {
+  const pill = document.getElementById('gyr-pill');
+  const btn  = document.getElementById('btn-gyr');
+  if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+    try {
+      const perm = await DeviceOrientationEvent.requestPermission();
+      if (perm !== 'granted') { pill.textContent = 'REFUSÉ'; return; }
+    } catch(e) { pill.textContent = 'ERR'; return; }
+  }
+  pill.textContent = 'ON'; pill.className = 'pill pill-pulse';
+  btn.textContent = 'Actif'; btn.disabled = true;
+
+  window.addEventListener('deviceorientation', e => {
+    const alpha = Math.round(e.alpha || 0);
+    const beta  = Math.round(e.beta  || 0);
+    const gamma = Math.round(e.gamma || 0);
+    document.getElementById('oa').textContent = alpha;
+    document.getElementById('ob').textContent = beta;
+    document.getElementById('og').textContent = gamma;
+    const ball = document.getElementById('tilt-ball');
+    const area = document.querySelector('.tilt-area');
+    const r = area.offsetWidth / 2;
+    const cx = r + Math.max(-(r-12), Math.min(r-12, gamma * (r / 45)));
+    const cy = r + Math.max(-(r-12), Math.min(r-12, beta  * (r / 45)));
+    ball.style.left = cx + 'px';
+    ball.style.top  = cy + 'px';
+    ball.style.transform = 'translate(-50%, -50%)';
+  });
+}
+</script>
+</body>
+</html>
