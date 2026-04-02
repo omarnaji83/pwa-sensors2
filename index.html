@@ -9,18 +9,19 @@
   <meta name="theme-color" content="#0a0a0f">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <title>Sensors POC v0.0.4</title>
+  <title>Sensors POC v0.1.0</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
 
     :root {
       --bg: #0a0a0f;
       --surface: #13131a;
       --surface2: #1c1c27;
       --border: rgba(255,255,255,0.07);
+      --border2: rgba(255,255,255,0.12);
       --blue: #378ADD;
       --blue-dim: rgba(55,138,221,0.15);
-      --blue-glow: rgba(55,138,221,0.3);
+      --blue-glow: rgba(55,138,221,0.25);
       --green: #5DCAA5;
       --green-dim: rgba(93,202,165,0.15);
       --amber: #EF9F27;
@@ -29,9 +30,10 @@
       --red-dim: rgba(226,75,74,0.15);
       --text: #e8e8f0;
       --text-muted: #6b6b80;
-      --text-dim: #3a3a4a;
+      --text-dim: #2e2e3e;
       --radius: 16px;
       --radius-sm: 10px;
+      --nav-h: 64px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -45,85 +47,85 @@
       overscroll-behavior: none;
     }
 
-    .app {
+    /* ── Layout ── */
+    .app { max-width: 430px; margin: 0 auto; position: relative; min-height: 100vh; }
+
+    .screen {
+      display: none;
+      padding: env(safe-area-inset-top, 16px) 16px calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 12px);
+      min-height: 100vh;
+      animation: fadeIn 0.18s ease;
+    }
+    .screen.active { display: block; }
+    @keyframes fadeIn { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform: translateY(0); } }
+
+    /* sub-screen (game, debug) */
+    .subscreen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 100;
       max-width: 430px;
       margin: 0 auto;
-      padding: env(safe-area-inset-top, 20px) 16px env(safe-area-inset-bottom, 20px);
-      min-height: 100vh;
+      overflow-y: auto;
+      padding: env(safe-area-inset-top, 16px) 16px 24px;
+      animation: slideUp 0.22s ease;
     }
+    .subscreen.active { display: block; }
+    @keyframes slideUp { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: translateY(0); } }
 
-    header {
+    /* ── Bottom Nav ── */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 100%; max-width: 430px;
+      height: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
+      background: rgba(13,13,20,0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 0.5px solid var(--border);
       display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 16px 0 24px;
+      align-items: flex-start;
+      padding-top: 8px;
+      z-index: 50;
     }
 
-    .header-left { display: flex; align-items: center; gap: 12px; flex: 1; }
-
-    .clock {
-      font-family: 'DM Mono', monospace;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-muted);
-      text-align: right;
-      line-height: 1.4;
-    }
-    .clock-time { font-size: 18px; font-weight: 400; color: var(--text); display: block; }
-    .clock-date { font-size: 11px; color: var(--text-muted); display: block; }
-
-    .header-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      background: var(--blue-dim);
-      border: 0.5px solid var(--blue);
+    .nav-item {
+      flex: 1;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
-    }
-
-    .header-icon svg { width: 20px; height: 20px; }
-
-    header h1 {
-      font-size: 20px;
-      font-weight: 500;
-      letter-spacing: -0.02em;
-    }
-
-    header p {
-      font-size: 12px;
-      color: var(--text-muted);
-      font-family: 'DM Mono', monospace;
-    }
-
-    /* install banner */
-    .install-banner {
-      display: none;
-      background: var(--blue-dim);
-      border: 0.5px solid var(--blue);
-      border-radius: var(--radius-sm);
-      padding: 10px 14px;
-      margin-bottom: 16px;
-      font-size: 13px;
-      color: var(--blue);
-      align-items: center;
-      gap: 8px;
-    }
-    .install-banner.show { display: flex; }
-    .install-banner button {
-      margin-left: auto;
-      background: var(--blue);
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      padding: 5px 12px;
-      font-size: 12px;
-      font-weight: 500;
+      gap: 4px;
       cursor: pointer;
+      padding: 4px 0;
+      transition: opacity 0.15s;
     }
+    .nav-item svg { width: 22px; height: 22px; transition: stroke 0.15s; }
+    .nav-label { font-size: 10px; font-family: 'DM Mono', monospace; color: var(--text-muted); transition: color 0.15s; }
+    .nav-item.active svg { stroke: var(--blue); }
+    .nav-item.active .nav-label { color: var(--blue); }
+    .nav-item:not(.active) svg { stroke: var(--text-muted); }
 
-    /* Card */
+    /* ── Common ── */
+    .page-header {
+      padding: 20px 0 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .back-btn {
+      width: 32px; height: 32px;
+      background: var(--surface2);
+      border: 0.5px solid var(--border);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0;
+    }
+    .back-btn svg { width: 16px; height: 16px; stroke: var(--text-muted); }
+    .page-title { font-size: 18px; font-weight: 500; letter-spacing: -0.02em; }
+
     .card {
       background: var(--surface);
       border: 0.5px solid var(--border);
@@ -132,464 +134,852 @@
       margin-bottom: 12px;
     }
 
-    .card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
-    }
-
     .card-title {
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      font-family: 'DM Mono', monospace;
+      font-size: 11px; font-weight: 500;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--text-muted); font-family: 'DM Mono', monospace;
+      margin-bottom: 12px;
     }
 
     .pill {
-      font-size: 11px;
-      font-family: 'DM Mono', monospace;
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-weight: 500;
+      font-size: 11px; font-family: 'DM Mono', monospace;
+      padding: 3px 10px; border-radius: 20px; font-weight: 500;
     }
-    .pill-off  { background: var(--surface2); color: var(--text-muted); }
-    .pill-on   { background: var(--green-dim); color: var(--green); }
+    .pill-off   { background: var(--surface2); color: var(--text-muted); }
+    .pill-on    { background: var(--green-dim); color: var(--green); }
     .pill-pulse { background: var(--blue-dim); color: var(--blue); animation: blink 1.2s infinite; }
-
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.5} }
-
-    /* Metrics */
-    .metric-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-bottom: 14px;
-    }
-
-    .metric {
-      background: var(--surface2);
-      border-radius: var(--radius-sm);
-      padding: 10px;
-      text-align: center;
-    }
-
-    .metric-label {
-      font-size: 11px;
-      color: var(--text-muted);
-      font-family: 'DM Mono', monospace;
-      margin-bottom: 4px;
-    }
-
-    .metric-val {
-      font-size: 20px;
-      font-weight: 500;
-      font-family: 'DM Mono', monospace;
-      color: var(--text);
-      font-variant-numeric: tabular-nums;
-    }
-
-    .metric-unit {
-      font-size: 10px;
-      color: var(--text-dim);
-      font-family: 'DM Mono', monospace;
-    }
-
-    /* Buttons */
-    .btn-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-    }
 
     .btn {
       background: var(--surface2);
       border: 0.5px solid var(--border);
       border-radius: var(--radius-sm);
-      padding: 10px 6px;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text);
-      cursor: pointer;
+      padding: 10px 12px;
+      font-size: 13px; font-weight: 500;
+      color: var(--text); cursor: pointer;
       font-family: 'DM Sans', sans-serif;
       transition: transform 0.1s, background 0.1s;
+      width: 100%;
     }
-    .btn:active { transform: scale(0.96); background: rgba(255,255,255,0.05); }
+    .btn:active { transform: scale(0.97); }
     .btn-blue { background: var(--blue-dim); border-color: rgba(55,138,221,0.3); color: var(--blue); }
-    .btn-red  { background: var(--red-dim);  border-color: rgba(226,75,74,0.3);  color: var(--red); }
-    .btn-wide { grid-column: span 3; }
-    .btn:disabled { opacity: 0.4; pointer-events: none; }
+    .btn-green { background: var(--green-dim); border-color: rgba(93,202,165,0.3); color: var(--green); }
+    .btn-red  { background: var(--red-dim); border-color: rgba(226,75,74,0.3); color: var(--red); }
+    .btn:disabled { opacity: 0.35; pointer-events: none; }
 
-    .feedback {
-      font-size: 12px;
-      font-family: 'DM Mono', monospace;
-      color: var(--text-muted);
-      text-align: center;
-      margin-top: 10px;
-      min-height: 16px;
-    }
+    .metric-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 12px; }
+    .metric { background: var(--surface2); border-radius: var(--radius-sm); padding: 10px; text-align: center; }
+    .metric-label { font-size: 11px; color: var(--text-muted); font-family: 'DM Mono', monospace; margin-bottom: 4px; }
+    .metric-val { font-size: 18px; font-weight: 500; font-family: 'DM Mono', monospace; color: var(--text); font-variant-numeric: tabular-nums; }
+    .metric-unit { font-size: 10px; color: var(--text-dim); font-family: 'DM Mono', monospace; }
 
-    /* Shake counter */
-    .shake-display {
-      display: flex;
-      align-items: baseline;
-      gap: 6px;
-      justify-content: center;
-      padding: 10px 0 14px;
+    .feedback { font-size: 12px; font-family: 'DM Mono', monospace; color: var(--text-muted); text-align: center; margin-top: 10px; min-height: 16px; }
+
+    input[type="text"], input[type="number"] {
+      background: var(--surface2);
+      border: 0.5px solid var(--border2);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      width: 100%;
+      outline: none;
     }
-    .shake-num {
-      font-size: 48px;
+    input:focus { border-color: var(--blue); }
+
+    /* ── HOME screen ── */
+    .home-hero {
+      padding: 24px 0 28px;
+    }
+    .home-time {
+      font-size: 52px;
       font-weight: 300;
       font-family: 'DM Mono', monospace;
+      letter-spacing: -0.03em;
       color: var(--text);
       line-height: 1;
     }
-    .shake-label {
-      font-size: 12px;
+    .home-date {
+      font-size: 13px;
       color: var(--text-muted);
+      font-family: 'DM Mono', monospace;
+      margin-top: 6px;
+    }
+    .home-greeting {
+      font-size: 22px;
+      font-weight: 300;
+      color: var(--text);
+      margin-top: 16px;
+      letter-spacing: -0.02em;
+    }
+    .home-greeting strong { font-weight: 500; font-style: italic; }
+
+    .section-label {
+      font-size: 11px; font-weight: 500;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--text-muted); font-family: 'DM Mono', monospace;
+      margin: 20px 0 10px;
     }
 
-    /* Ball tilt */
-    .tilt-container {
-      display: flex;
-      justify-content: center;
-      margin: 6px 0 14px;
-    }
-
-    .tilt-area {
-      width: 180px;
-      height: 180px;
-      border-radius: 50%;
+    /* App cards on home */
+    .app-card {
+      background: var(--surface);
       border: 0.5px solid var(--border);
-      background: var(--surface2);
-      position: relative;
-      overflow: hidden;
+      border-radius: var(--radius);
+      padding: 18px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .app-card:active { background: var(--surface2); border-color: var(--border2); }
+    .app-card-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .app-card-icon svg { width: 24px; height: 24px; }
+    .app-card-body { flex: 1; }
+    .app-card-title { font-size: 15px; font-weight: 500; margin-bottom: 3px; }
+    .app-card-desc { font-size: 12px; color: var(--text-muted); }
+    .app-card-arrow { stroke: var(--text-dim); width: 16px; height: 16px; flex-shrink: 0; }
+
+    /* ── GAMES screen ── */
+    .game-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .game-card:active { background: var(--surface2); }
+    .game-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+    .game-card-title { font-size: 16px; font-weight: 500; }
+    .game-card-badge { font-size: 10px; font-family: 'DM Mono', monospace; padding: 3px 8px; border-radius: 20px; }
+    .badge-new { background: var(--blue-dim); color: var(--blue); }
+    .game-card-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+
+    /* ── LANCER game ── */
+    .game-status-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px; padding: 10px 14px;
+      background: var(--surface2); border-radius: var(--radius-sm);
+      font-size: 12px; font-family: 'DM Mono', monospace; color: var(--text-muted);
     }
 
-    .tilt-crosshair {
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      width: 100%; height: 100%;
-      pointer-events: none;
+    .throw-arena {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 20px;
+      margin-bottom: 12px;
+      text-align: center;
     }
 
-    .tilt-line-h, .tilt-line-v {
-      position: absolute;
-      background: var(--text-dim);
+    .throw-phase {
+      font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+      font-family: 'DM Mono', monospace; color: var(--text-muted); margin-bottom: 8px;
     }
-    .tilt-line-h { width: 100%; height: 0.5px; top: 50%; }
-    .tilt-line-v { height: 100%; width: 0.5px; left: 50%; }
 
-    .tilt-ball {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
+    .throw-instruction {
+      font-size: 28px; font-weight: 300; letter-spacing: -0.02em;
+      color: var(--text); margin-bottom: 6px; line-height: 1.2;
+    }
+
+    .throw-sub {
+      font-size: 13px; color: var(--text-muted); margin-bottom: 24px;
+    }
+
+    /* Force bar */
+    .force-bar-wrap {
+      margin: 0 0 20px;
+    }
+    .force-bar-label {
+      display: flex; justify-content: space-between;
+      font-size: 11px; font-family: 'DM Mono', monospace;
+      color: var(--text-muted); margin-bottom: 6px;
+    }
+    .force-bar-track {
+      height: 8px; background: var(--surface2);
+      border-radius: 4px; overflow: hidden;
+    }
+    .force-bar-fill {
+      height: 100%; width: 0%;
+      border-radius: 4px;
       background: var(--blue);
-      box-shadow: 0 0 12px var(--blue-glow);
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
+      transition: width 0.08s, background 0.2s;
+    }
+
+    .throw-result {
+      display: none;
+      padding: 16px 0 4px;
+    }
+    .throw-dist {
+      font-size: 64px; font-weight: 300;
+      font-family: 'DM Mono', monospace;
+      color: var(--text); line-height: 1;
+      letter-spacing: -0.04em;
+    }
+    .throw-dist-unit { font-size: 20px; color: var(--text-muted); }
+    .throw-rank { font-size: 13px; color: var(--text-muted); margin-top: 6px; }
+
+    /* Leaderboard */
+    .lb-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 0;
+      border-bottom: 0.5px solid var(--border);
+      font-size: 13px;
+    }
+    .lb-row:last-child { border-bottom: none; }
+    .lb-rank { font-family: 'DM Mono', monospace; color: var(--text-muted); width: 20px; text-align: center; font-size: 12px; }
+    .lb-name { flex: 1; font-weight: 500; }
+    .lb-dist { font-family: 'DM Mono', monospace; color: var(--blue); font-size: 14px; }
+    .lb-empty { font-size: 13px; color: var(--text-muted); font-style: italic; text-align: center; padding: 16px 0; }
+
+    /* ── DEBUG screen ── */
+    .tilt-container { display: flex; justify-content: center; margin: 6px 0 14px; }
+    .tilt-area {
+      width: 160px; height: 160px; border-radius: 50%;
+      border: 0.5px solid var(--border); background: var(--surface2);
+      position: relative; overflow: hidden;
+    }
+    .tilt-line-h { position: absolute; width: 100%; height: 0.5px; top: 50%; background: var(--text-dim); }
+    .tilt-line-v { position: absolute; height: 100%; width: 0.5px; left: 50%; background: var(--text-dim); }
+    .tilt-ball {
+      width: 20px; height: 20px; border-radius: 50%;
+      background: var(--blue); box-shadow: 0 0 10px var(--blue-glow);
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
       transition: top 0.08s, left 0.08s;
     }
+    .shake-display { display: flex; align-items: baseline; gap: 6px; justify-content: center; padding: 8px 0 12px; }
+    .shake-num { font-size: 42px; font-weight: 300; font-family: 'DM Mono', monospace; color: var(--text); line-height: 1; }
+    .shake-label { font-size: 12px; color: var(--text-muted); }
 
-    /* install hint */
-    .install-hint {
-      text-align: center;
-      padding: 20px 0 8px;
-      font-size: 12px;
-      color: var(--text-dim);
+    /* Notif countdown */
+    .notif-countdown { display: none; text-align: center; padding: 10px 0 4px; }
+    .notif-countdown-num { font-size: 36px; font-weight: 300; font-family: 'DM Mono', monospace; color: var(--text); }
+
+    /* ── SETTINGS ── */
+    .settings-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 0.5px solid var(--border);
+    }
+    .settings-row:last-child { border-bottom: none; }
+    .settings-label { font-size: 14px; font-weight: 500; }
+    .settings-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .version-tag {
+      font-size: 11px; font-family: 'DM Mono', monospace;
+      padding: 3px 10px; border-radius: 20px;
+      background: var(--blue-dim); color: var(--blue);
     }
   </style>
 </head>
 <body>
 <div class="app">
 
-  <header>
-    <div class="header-left">
-      <div class="header-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="1.5" stroke-linecap="round">
+  <!-- ══════════════ HOME ══════════════ -->
+  <div class="screen active" id="screen-home">
+    <div class="home-hero">
+      <div class="home-time" id="clock-time">--:--:--</div>
+      <div class="home-date" id="clock-date">---</div>
+      <div class="home-greeting">Bonjour, <strong id="greeting-name">Joueur</strong></div>
+    </div>
+
+    <div class="section-label">Mini-jeux</div>
+    <div class="app-card" onclick="openSub('sub-lancer')">
+      <div class="app-card-icon" style="background:var(--blue-dim);border:0.5px solid rgba(55,138,221,0.3)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14M15 7l5 5-5 5"/>
+        </svg>
+      </div>
+      <div class="app-card-body">
+        <div class="app-card-title">Lancer de palet</div>
+        <div class="app-card-desc">Balancez l'iPhone pour mesurer votre force</div>
+      </div>
+      <svg class="app-card-arrow" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+    </div>
+
+    <div class="section-label">Outils</div>
+    <div class="app-card" onclick="openSub('sub-debug')">
+      <div class="app-card-icon" style="background:var(--amber-dim);border:0.5px solid rgba(239,159,39,0.3)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#EF9F27" stroke-width="1.5" stroke-linecap="round">
           <circle cx="12" cy="12" r="4"/>
           <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
         </svg>
       </div>
-      <div>
-        <h1>Sensors POC</h1>
-        <p>iPhone · WebAPI · <span style="color:var(--blue)">v0.0.4</span></p>
+      <div class="app-card-body">
+        <div class="app-card-title">Debug capteurs</div>
+        <div class="app-card-desc">Accéléromètre, gyroscope, notifications</div>
+      </div>
+      <svg class="app-card-arrow" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
+    </div>
+  </div>
+
+  <!-- ══════════════ GAMES ══════════════ -->
+  <div class="screen" id="screen-games">
+    <div style="padding: 24px 0 16px">
+      <div style="font-size:22px;font-weight:500;letter-spacing:-0.02em">Jeux</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-top:4px">Mini-jeux utilisant les capteurs iPhone</div>
+    </div>
+    <div class="game-card" onclick="openSub('sub-lancer')">
+      <div class="game-card-header">
+        <span class="game-card-title">Lancer de palet</span>
+        <span class="game-card-badge badge-new">Nouveau</span>
+      </div>
+      <div class="game-card-desc">Utilisez l'accéléromètre et le gyroscope pour simuler un lancer. Plus votre geste est fort et précis, plus le palet ira loin.</div>
+    </div>
+  </div>
+
+  <!-- ══════════════ SETTINGS ══════════════ -->
+  <div class="screen" id="screen-settings">
+    <div style="padding: 24px 0 20px">
+      <div style="font-size:22px;font-weight:500;letter-spacing:-0.02em">Réglages</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Profil</div>
+      <div style="margin-bottom:10px">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">Nom du joueur</div>
+        <input type="text" id="settings-name" placeholder="Entrez votre nom" maxlength="24">
+      </div>
+      <button class="btn btn-blue" onclick="saveName()">Enregistrer</button>
+      <div class="feedback" id="settings-feedback">—</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Application</div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-label">Version</div>
+          <div class="settings-sub">Sensors POC</div>
+        </div>
+        <span class="version-tag">v0.1.0</span>
+      </div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-label">Plateforme</div>
+          <div class="settings-sub">Progressive Web App</div>
+        </div>
+        <span style="font-size:12px;color:var(--text-muted);font-family:'DM Mono',monospace">iPhone · Safari</span>
       </div>
     </div>
-    <div class="clock">
-      <span class="clock-time" id="clock-time">--:--:--</span>
-      <span class="clock-date" id="clock-date">---</span>
-    </div>
-  </header>
-
-  <div class="install-banner" id="install-banner">
-    <span>Installer sur l'écran d'accueil</span>
-    <button id="install-btn">Installer</button>
   </div>
 
-  <!-- Notifications -->
-  <div class="card">
-    <div class="card-header">
-      <span class="card-title">Notifications</span>
-      <span class="pill pill-off" id="notif-pill">OFF</span>
-    </div>
-    <div id="notif-request" style="margin-bottom:14px">
-      <button class="btn btn-wide btn-blue" style="width:100%" onclick="requestNotifPermission()">Autoriser les notifications</button>
-    </div>
-    <div id="notif-controls" style="display:none">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-        <span style="font-size:13px;color:var(--text-muted);white-space:nowrap">Dans</span>
-        <input type="number" id="notif-delay" value="5" min="1" max="60"
-          style="width:64px;background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:16px;text-align:center">
-        <span style="font-size:13px;color:var(--text-muted)">secondes</span>
+  <!-- ══════════════ SUBSCREEN: LANCER ══════════════ -->
+  <div class="subscreen" id="sub-lancer">
+    <div class="page-header">
+      <div class="back-btn" onclick="closeSub('sub-lancer')">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
       </div>
-      <div style="display:flex;gap:8px;margin-bottom:10px">
-        <input type="text" id="notif-title" value="Hello" placeholder="Titre"
-          style="flex:1;background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px">
-        <input type="text" id="notif-body" value="Ceci est une notification de test" placeholder="Message"
-          style="flex:2;background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px">
+      <span class="page-title">Lancer de palet</span>
+    </div>
+
+    <div class="game-status-bar">
+      <span id="throw-sensor-status">Capteurs non activés</span>
+      <span id="throw-session-count" style="color:var(--blue)">0 lancers</span>
+    </div>
+
+    <div class="throw-arena" id="throw-arena">
+      <div class="throw-phase" id="throw-phase">EN ATTENTE</div>
+      <div class="throw-instruction" id="throw-instruction">Prêt à lancer ?</div>
+      <div class="throw-sub" id="throw-sub">Activez les capteurs pour commencer</div>
+
+      <div class="force-bar-wrap">
+        <div class="force-bar-label">
+          <span>Force</span>
+          <span id="force-pct">0%</span>
+        </div>
+        <div class="force-bar-track"><div class="force-bar-fill" id="force-bar"></div></div>
       </div>
-      <button class="btn btn-wide btn-blue" style="width:100%" onclick="scheduleNotif()">Programmer la notification</button>
-    </div>
-    <div class="feedback" id="notif-log">—</div>
-    <div id="notif-countdown" style="display:none;text-align:center;padding:10px 0 4px">
-      <span style="font-size:36px;font-weight:300;font-family:'DM Mono',monospace;color:var(--text)" id="countdown-num">5</span>
-      <span style="font-size:12px;color:var(--text-muted);display:block">secondes restantes</span>
-    </div>
-  </div>
 
-  <!-- Accéléromètre -->
-  <div class="card">
-    <div class="card-header">
-      <span class="card-title">Accéléromètre</span>
-      <span class="pill pill-off" id="acc-pill">OFF</span>
-    </div>
-    <div class="metric-row">
-      <div class="metric"><div class="metric-label">X</div><div class="metric-val" id="ax">—</div><div class="metric-unit">m/s²</div></div>
-      <div class="metric"><div class="metric-label">Y</div><div class="metric-val" id="ay">—</div><div class="metric-unit">m/s²</div></div>
-      <div class="metric"><div class="metric-label">Z</div><div class="metric-val" id="az">—</div><div class="metric-unit">m/s²</div></div>
-    </div>
-    <div class="shake-display">
-      <span class="shake-num" id="shake-num">0</span>
-      <span class="shake-label">secousses</span>
-    </div>
-    <div class="btn-grid">
-      <button class="btn btn-wide btn-blue" id="btn-acc" onclick="startAccel()">Activer</button>
-    </div>
-  </div>
-
-  <!-- Gyroscope / Orientation -->
-  <div class="card">
-    <div class="card-header">
-      <span class="card-title">Gyroscope · Orientation</span>
-      <span class="pill pill-off" id="gyr-pill">OFF</span>
-    </div>
-    <div class="tilt-container">
-      <div class="tilt-area">
-        <div class="tilt-line-h"></div>
-        <div class="tilt-line-v"></div>
-        <div class="tilt-ball" id="tilt-ball"></div>
+      <div class="throw-result" id="throw-result">
+        <div class="throw-dist"><span id="throw-dist-val">0</span><span class="throw-dist-unit">m</span></div>
+        <div class="throw-rank" id="throw-rank"></div>
       </div>
     </div>
-    <div class="metric-row">
-      <div class="metric"><div class="metric-label">Alpha</div><div class="metric-val" id="oa">—</div><div class="metric-unit">°</div></div>
-      <div class="metric"><div class="metric-label">Beta</div><div class="metric-val" id="ob">—</div><div class="metric-unit">°</div></div>
-      <div class="metric"><div class="metric-label">Gamma</div><div class="metric-val" id="og">—</div><div class="metric-unit">°</div></div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <button class="btn btn-blue" id="btn-throw-activate" onclick="activateThrowSensors()">Activer capteurs</button>
+      <button class="btn btn-green" id="btn-throw-ready" onclick="armThrow()" disabled>Se préparer</button>
     </div>
-    <div class="btn-grid">
-      <button class="btn btn-wide btn-blue" id="btn-gyr" onclick="startGyro()">Activer</button>
+    <button class="btn" id="btn-throw-reset" onclick="resetThrow()" style="margin-bottom:12px">Nouveau lancer</button>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="card-title" style="margin-bottom:0">Meilleurs lancers</div>
+        <span style="font-size:11px;color:var(--text-muted);cursor:pointer;font-family:'DM Mono',monospace" onclick="clearLeaderboard()">effacer</span>
+      </div>
+      <div id="leaderboard">
+        <div class="lb-empty">Aucun lancer enregistré</div>
+      </div>
     </div>
   </div>
 
-  <div class="install-hint" id="install-hint" style="display:none">
-    Safari → Partager → Sur l'écran d'accueil
+  <!-- ══════════════ SUBSCREEN: DEBUG ══════════════ -->
+  <div class="subscreen" id="sub-debug">
+    <div class="page-header">
+      <div class="back-btn" onclick="closeSub('sub-debug')">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </div>
+      <span class="page-title">Debug capteurs</span>
+    </div>
+
+    <!-- Accéléromètre -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="card-title" style="margin-bottom:0">Accéléromètre</div>
+        <span class="pill pill-off" id="acc-pill">OFF</span>
+      </div>
+      <div class="metric-row">
+        <div class="metric"><div class="metric-label">X</div><div class="metric-val" id="ax">—</div><div class="metric-unit">m/s²</div></div>
+        <div class="metric"><div class="metric-label">Y</div><div class="metric-val" id="ay">—</div><div class="metric-unit">m/s²</div></div>
+        <div class="metric"><div class="metric-label">Z</div><div class="metric-val" id="az">—</div><div class="metric-unit">m/s²</div></div>
+      </div>
+      <div class="shake-display">
+        <span class="shake-num" id="shake-num">0</span>
+        <span class="shake-label">secousses</span>
+      </div>
+      <button class="btn btn-blue" id="btn-acc" onclick="startAccel()">Activer</button>
+    </div>
+
+    <!-- Gyroscope -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="card-title" style="margin-bottom:0">Gyroscope · Orientation</div>
+        <span class="pill pill-off" id="gyr-pill">OFF</span>
+      </div>
+      <div class="tilt-container">
+        <div class="tilt-area">
+          <div class="tilt-line-h"></div>
+          <div class="tilt-line-v"></div>
+          <div class="tilt-ball" id="tilt-ball"></div>
+        </div>
+      </div>
+      <div class="metric-row">
+        <div class="metric"><div class="metric-label">Alpha</div><div class="metric-val" id="oa">—</div><div class="metric-unit">°</div></div>
+        <div class="metric"><div class="metric-label">Beta</div><div class="metric-val" id="ob">—</div><div class="metric-unit">°</div></div>
+        <div class="metric"><div class="metric-label">Gamma</div><div class="metric-val" id="og">—</div><div class="metric-unit">°</div></div>
+      </div>
+      <button class="btn btn-blue" id="btn-gyr" onclick="startGyro()">Activer</button>
+    </div>
+
+    <!-- Notifications -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="card-title" style="margin-bottom:0">Notifications</div>
+        <span class="pill pill-off" id="notif-pill">OFF</span>
+      </div>
+      <div id="notif-request">
+        <button class="btn btn-blue" onclick="requestNotifPermission()">Autoriser les notifications</button>
+      </div>
+      <div id="notif-controls" style="display:none">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <span style="font-size:13px;color:var(--text-muted);white-space:nowrap">Dans</span>
+          <input type="number" id="notif-delay" value="5" min="1" max="60" style="width:60px;text-align:center">
+          <span style="font-size:13px;color:var(--text-muted)">secondes</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <input type="text" id="notif-title" value="Hello" placeholder="Titre" style="flex:1">
+          <input type="text" id="notif-body" value="Ceci est une notification de test" placeholder="Message" style="flex:2">
+        </div>
+        <button class="btn btn-blue" onclick="scheduleNotif()">Programmer</button>
+      </div>
+      <div class="notif-countdown" id="notif-countdown">
+        <div class="notif-countdown-num" id="countdown-num">5</div>
+        <div style="font-size:12px;color:var(--text-muted)">secondes restantes</div>
+      </div>
+      <div class="feedback" id="notif-log">—</div>
+    </div>
   </div>
+
+  <!-- ══════════════ BOTTOM NAV ══════════════ -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" id="nav-home" onclick="goTo('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
+        <path d="M9 21V12h6v9"/>
+      </svg>
+      <span class="nav-label">Accueil</span>
+    </div>
+    <div class="nav-item" id="nav-games" onclick="goTo('games')">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="6" width="20" height="12" rx="3"/>
+        <path d="M8 12h4M10 10v4M16 11.5v1M14 12.5h4"/>
+      </svg>
+      <span class="nav-label">Jeux</span>
+    </div>
+    <div class="nav-item" id="nav-settings" onclick="goTo('settings')">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M12 2v2m0 16v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M2 12h2m16 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+      </svg>
+      <span class="nav-label">Réglages</span>
+    </div>
+  </nav>
 
 </div>
 
 <script>
-// ── Horloge ──────────────────────────────────────────────────
-const DAYS = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+// ── Utils ────────────────────────────────────────────────────
+const DAYS   = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
 const MONTHS = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
 
+function $(id) { return document.getElementById(id); }
+
+// ── Clock ────────────────────────────────────────────────────
 function updateClock() {
   const now = new Date();
   const hh = String(now.getHours()).padStart(2,'0');
   const mm = String(now.getMinutes()).padStart(2,'0');
   const ss = String(now.getSeconds()).padStart(2,'0');
-  document.getElementById('clock-time').textContent = hh + ':' + mm + ':' + ss;
-  document.getElementById('clock-date').textContent =
-    DAYS[now.getDay()] + ' ' + now.getDate() + ' ' + MONTHS[now.getMonth()];
+  $('clock-time').textContent = hh + ':' + mm + ':' + ss;
+  $('clock-date').textContent = DAYS[now.getDay()] + ' ' + now.getDate() + ' ' + MONTHS[now.getMonth()];
 }
 updateClock();
 setInterval(updateClock, 1000);
 
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('service-worker.js');
+// ── Navigation ───────────────────────────────────────────────
+function goTo(screen) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  $('screen-' + screen).classList.add('active');
+  $('nav-' + screen).classList.add('active');
+}
+
+function openSub(id) {
+  $(id).classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSub(id) {
+  $(id).classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+// ── Settings / Name ──────────────────────────────────────────
+function loadName() {
+  const name = localStorage.getItem('playerName') || '';
+  $('greeting-name').textContent = name || 'Joueur';
+  $('settings-name').value = name;
+}
+
+function saveName() {
+  const name = $('settings-name').value.trim();
+  if (!name) return;
+  localStorage.setItem('playerName', name);
+  $('greeting-name').textContent = name;
+  $('settings-feedback').textContent = '› Nom enregistré';
+  setTimeout(() => { $('settings-feedback').textContent = '—'; }, 2000);
+}
+
+loadName();
+
+// ── Leaderboard ──────────────────────────────────────────────
+function getLeaderboard() {
+  try { return JSON.parse(localStorage.getItem('leaderboard') || '[]'); } catch { return []; }
+}
+
+function saveLeaderboard(lb) {
+  localStorage.setItem('leaderboard', JSON.stringify(lb));
+}
+
+function renderLeaderboard() {
+  const lb = getLeaderboard();
+  const el = $('leaderboard');
+  if (!lb.length) { el.innerHTML = '<div class="lb-empty">Aucun lancer enregistré</div>'; return; }
+  el.innerHTML = lb.slice(0,8).map((e,i) => `
+    <div class="lb-row">
+      <span class="lb-rank">${i+1}</span>
+      <span class="lb-name">${e.name}</span>
+      <span class="lb-dist">${e.dist}m</span>
+    </div>`).join('');
+}
+
+function clearLeaderboard() {
+  localStorage.removeItem('leaderboard');
+  renderLeaderboard();
+}
+
+renderLeaderboard();
+
+// ── LANCER game ──────────────────────────────────────────────
+let throwSensorsReady = false;
+let throwArmed = false;
+let throwDone = false;
+let throwSessionCount = 0;
+
+let accData = { x:0, y:0, z:0 };
+let gyroData = { alpha:0, beta:0, gamma:0 };
+let peakAcc = 0;
+let peakRot = 0;
+let gestureStartTime = null;
+let gestureActive = false;
+let throwAccListener = null;
+let throwOriListener = null;
+
+async function activateThrowSensors() {
+  // Request motion permission (iOS 13+)
+  if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+    try {
+      const p1 = await DeviceMotionEvent.requestPermission();
+      if (p1 !== 'granted') { $('throw-sensor-status').textContent = 'Permission refusée'; return; }
+    } catch(e) { return; }
+  }
+  if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+    try {
+      const p2 = await DeviceOrientationEvent.requestPermission();
+      if (p2 !== 'granted') {}
+    } catch(e) {}
+  }
+
+  throwSensorsReady = true;
+  $('throw-sensor-status').textContent = 'Capteurs actifs';
+  $('btn-throw-activate').disabled = true;
+  $('btn-throw-ready').disabled = false;
+  setThrowPhase('idle');
+}
+
+function setThrowPhase(phase) {
+  if (phase === 'idle') {
+    $('throw-phase').textContent = 'PRÊT';
+    $('throw-instruction').textContent = 'Appuyez sur "Se préparer"';
+    $('throw-sub').textContent = 'Tenez l\'iPhone dans la main, prêt à lancer';
+    $('throw-result').style.display = 'none';
+    updateForceBar(0);
+  } else if (phase === 'armed') {
+    $('throw-phase').textContent = 'ARMÉ';
+    $('throw-instruction').textContent = 'Lancez !';
+    $('throw-sub').textContent = 'Effectuez un geste brusque vers l\'avant';
+    $('throw-result').style.display = 'none';
+  } else if (phase === 'detecting') {
+    $('throw-phase').textContent = 'DÉTECTION';
+    $('throw-instruction').textContent = 'En vol…';
+    $('throw-sub').textContent = '';
+  } else if (phase === 'result') {
+    $('throw-phase').textContent = 'RÉSULTAT';
+    $('throw-instruction').textContent = '';
+    $('throw-sub').textContent = '';
+  }
+}
+
+function armThrow() {
+  if (!throwSensorsReady) return;
+  throwArmed = true;
+  throwDone = false;
+  peakAcc = 0;
+  peakRot = 0;
+  gestureActive = false;
+  gestureStartTime = null;
+  setThrowPhase('armed');
+  $('btn-throw-ready').disabled = true;
+  updateForceBar(0);
+
+  // Motion listener
+  throwAccListener = (e) => {
+    if (!throwArmed || throwDone) return;
+    const a = e.accelerationIncludingGravity;
+    if (!a) return;
+    const mag = Math.sqrt((a.x||0)**2 + (a.y||0)**2 + (a.z||0)**2);
+    const force = mag / 9.81; // normalize to g-force approx
+
+    if (force > 1.8 && !gestureActive) {
+      gestureActive = true;
+      gestureStartTime = Date.now();
+    }
+    if (gestureActive) {
+      if (mag > peakAcc) peakAcc = mag;
+      const elapsed = Date.now() - gestureStartTime;
+      const liveForce = Math.min(100, (peakAcc / 35) * 100);
+      updateForceBar(liveForce);
+      setThrowPhase('detecting');
+      if (elapsed > 400) {
+        finishThrow();
+      }
+    }
+  };
+
+  throwOriListener = (e) => {
+    if (!throwArmed || throwDone) return;
+    const rot = Math.abs(e.beta||0) + Math.abs(e.gamma||0);
+    if (rot > peakRot) peakRot = rot;
+  };
+
+  window.addEventListener('devicemotion', throwAccListener);
+  window.addEventListener('deviceorientation', throwOriListener);
+}
+
+function finishThrow() {
+  throwDone = true;
+  throwArmed = false;
+  window.removeEventListener('devicemotion', throwAccListener);
+  window.removeEventListener('deviceorientation', throwOriListener);
+
+  // Score formula
+  const accScore  = Math.min(peakAcc / 35, 1);          // normalize, cap at 1
+  const rotScore  = Math.min(peakRot / 90, 1);           // rotation bonus
+  const rawForce  = (accScore * 0.7 + rotScore * 0.3);   // weighted blend
+  const distance  = Math.round(5 + rawForce * rawForce * 95); // 5m → 100m quadratic
+  const forcePct  = Math.round(rawForce * 100);
+
+  updateForceBar(forcePct);
+  setThrowPhase('result');
+  $('throw-dist-val').textContent = distance;
+  $('throw-result').style.display = 'block';
+
+  throwSessionCount++;
+  $('throw-session-count').textContent = throwSessionCount + ' lancer' + (throwSessionCount > 1 ? 's' : '');
+
+  // Save to leaderboard
+  const playerName = localStorage.getItem('playerName') || 'Joueur';
+  const lb = getLeaderboard();
+  lb.push({ name: playerName, dist: distance, ts: Date.now() });
+  lb.sort((a,b) => b.dist - a.dist);
+  saveLeaderboard(lb.slice(0,20));
+  renderLeaderboard();
+
+  // Rank feedback
+  const rank = lb.findIndex(e => e.ts === lb.find(x => x.dist === distance && x.name === playerName)?.ts);
+  if (rank === 0) $('throw-rank').textContent = '🏆 Nouveau record !';
+  else $('throw-rank').textContent = 'Position #' + (rank+1) + ' au classement';
+
+  $('btn-throw-ready').disabled = false;
+}
+
+function resetThrow() {
+  throwArmed = false;
+  throwDone = false;
+  if (throwAccListener) window.removeEventListener('devicemotion', throwAccListener);
+  if (throwOriListener) window.removeEventListener('deviceorientation', throwOriListener);
+  if (throwSensorsReady) {
+    setThrowPhase('idle');
+    $('btn-throw-ready').disabled = false;
+  } else {
+    $('throw-phase').textContent = 'EN ATTENTE';
+    $('throw-instruction').textContent = 'Prêt à lancer ?';
+    $('throw-sub').textContent = 'Activez les capteurs pour commencer';
+  }
+  updateForceBar(0);
+  $('throw-result').style.display = 'none';
+}
+
+function updateForceBar(pct) {
+  $('force-bar').style.width = pct + '%';
+  $('force-pct').textContent = Math.round(pct) + '%';
+  if (pct < 40) $('force-bar').style.background = 'var(--blue)';
+  else if (pct < 75) $('force-bar').style.background = 'var(--amber)';
+  else $('force-bar').style.background = 'var(--red)';
+}
+
+// ── Debug: Accéléromètre ─────────────────────────────────────
+let shakeCount = 0;
+let lastAcc = { x:0, y:0, z:0 };
+
+async function startAccel() {
+  if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+    try {
+      const p = await DeviceMotionEvent.requestPermission();
+      if (p !== 'granted') { $('acc-pill').textContent='REFUSÉ'; return; }
+    } catch(e) { return; }
+  }
+  $('acc-pill').textContent = 'ON'; $('acc-pill').className = 'pill pill-pulse';
+  $('btn-acc').textContent = 'Actif'; $('btn-acc').disabled = true;
+  window.addEventListener('devicemotion', e => {
+    const a = e.accelerationIncludingGravity;
+    if (!a) return;
+    const x = +(a.x||0).toFixed(1), y = +(a.y||0).toFixed(1), z = +(a.z||0).toFixed(1);
+    $('ax').textContent = x; $('ay').textContent = y; $('az').textContent = z;
+    const delta = Math.abs(x-lastAcc.x)+Math.abs(y-lastAcc.y)+Math.abs(z-lastAcc.z);
+    if (delta > 15) { shakeCount++; $('shake-num').textContent = shakeCount; }
+    lastAcc = { x, y, z };
   });
 }
 
-// ── PWA install ──────────────────────────────────────────────
-let deferredPrompt = null;
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
-  document.getElementById('install-banner').classList.add('show');
-});
-
-document.getElementById('install-btn').addEventListener('click', () => {
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(() => {
-      deferredPrompt = null;
-      document.getElementById('install-banner').classList.remove('show');
-    });
+// ── Debug: Gyroscope ─────────────────────────────────────────
+async function startGyro() {
+  if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+    try {
+      const p = await DeviceOrientationEvent.requestPermission();
+      if (p !== 'granted') { $('gyr-pill').textContent='REFUSÉ'; return; }
+    } catch(e) { return; }
   }
-});
-
-// Safari standalone check
-const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-const isStandalone = window.navigator.standalone;
-if (isIOS && !isStandalone) {
-  document.getElementById('install-hint').style.display = 'block';
+  $('gyr-pill').textContent = 'ON'; $('gyr-pill').className = 'pill pill-pulse';
+  $('btn-gyr').textContent = 'Actif'; $('btn-gyr').disabled = true;
+  window.addEventListener('deviceorientation', e => {
+    const alpha = Math.round(e.alpha||0), beta = Math.round(e.beta||0), gamma = Math.round(e.gamma||0);
+    $('oa').textContent = alpha; $('ob').textContent = beta; $('og').textContent = gamma;
+    const area = document.querySelector('.tilt-area');
+    const r = area.offsetWidth / 2;
+    const ball = $('tilt-ball');
+    ball.style.left = (r + Math.max(-(r-10), Math.min(r-10, gamma*(r/45)))) + 'px';
+    ball.style.top  = (r + Math.max(-(r-10), Math.min(r-10, beta*(r/45))))  + 'px';
+    ball.style.transform = 'translate(-50%,-50%)';
+  });
 }
 
-// ── Notifications ────────────────────────────────────────────
+// ── Debug: Notifications ─────────────────────────────────────
 let countdownTimer = null;
 
 async function requestNotifPermission() {
-  if (!('Notification' in window)) {
-    document.getElementById('notif-log').textContent = 'Notifications non supportées sur ce navigateur';
-    return;
-  }
+  if (!('Notification' in window)) { $('notif-log').textContent = 'Non supporté'; return; }
   const perm = await Notification.requestPermission();
-  const pill = document.getElementById('notif-pill');
   if (perm === 'granted') {
-    pill.textContent = 'ON'; pill.className = 'pill pill-on';
-    document.getElementById('notif-request').style.display = 'none';
-    document.getElementById('notif-controls').style.display = 'block';
-    document.getElementById('notif-log').textContent = '› Permission accordée';
+    $('notif-pill').textContent = 'ON'; $('notif-pill').className = 'pill pill-on';
+    $('notif-request').style.display = 'none';
+    $('notif-controls').style.display = 'block';
+    $('notif-log').textContent = '› Permission accordée';
   } else {
-    pill.textContent = 'REFUSÉ'; pill.className = 'pill pill-off';
-    document.getElementById('notif-log').textContent = '› Permission refusée';
+    $('notif-pill').textContent = 'REFUSÉ';
+    $('notif-log').textContent = '› Permission refusée';
   }
 }
 
 function scheduleNotif() {
   if (Notification.permission !== 'granted') return;
-  const delay = parseInt(document.getElementById('notif-delay').value) || 5;
-  const title = document.getElementById('notif-title').value || 'Hello';
-  const body  = document.getElementById('notif-body').value  || 'Ceci est une notification de test';
-
+  const delay = parseInt($('notif-delay').value) || 5;
+  const title = $('notif-title').value || 'Hello';
+  const body  = $('notif-body').value  || 'Test';
   if (countdownTimer) clearInterval(countdownTimer);
-
-  const pill = document.getElementById('notif-pill');
-  pill.textContent = 'PENDING'; pill.className = 'pill pill-pulse';
-
-  const countdown = document.getElementById('notif-countdown');
-  const countNum  = document.getElementById('countdown-num');
-  countdown.style.display = 'block';
-  countNum.textContent = delay;
-  document.getElementById('notif-log').textContent = '› Notification programmée dans ' + delay + 's';
-
+  $('notif-pill').textContent = 'PENDING'; $('notif-pill').className = 'pill pill-pulse';
+  $('notif-countdown').style.display = 'block';
+  $('countdown-num').textContent = delay;
+  $('notif-log').textContent = '› Programmé dans ' + delay + 's';
   let remaining = delay;
   countdownTimer = setInterval(() => {
     remaining--;
-    countNum.textContent = remaining;
+    $('countdown-num').textContent = remaining;
     if (remaining <= 0) {
       clearInterval(countdownTimer);
-      countdown.style.display = 'none';
+      $('notif-countdown').style.display = 'none';
       navigator.serviceWorker.ready.then(sw => {
-        sw.showNotification(title, {
-          body,
-          icon: 'icons/icon-192.png',
-          badge: 'icons/icon-192.png'
-        });
-      }).catch(() => {
-        new Notification(title, { body, icon: 'icons/icon-192.png' });
-      });
-      pill.textContent = 'SENT'; pill.className = 'pill pill-on';
-      document.getElementById('notif-log').textContent = '› "' + title + '" envoyé';
+        sw.showNotification(title, { body, icon: 'icons/icon-192.png' });
+      }).catch(() => new Notification(title, { body }));
+      $('notif-pill').textContent = 'SENT'; $('notif-pill').className = 'pill pill-on';
+      $('notif-log').textContent = '› "' + title + '" envoyé';
     }
   }, 1000);
 }
 
-// Init notification state
 if ('Notification' in window && Notification.permission === 'granted') {
-  document.getElementById('notif-pill').textContent = 'ON';
-  document.getElementById('notif-pill').className = 'pill pill-on';
-  document.getElementById('notif-request').style.display = 'none';
-  document.getElementById('notif-controls').style.display = 'block';
+  $('notif-pill').textContent = 'ON'; $('notif-pill').className = 'pill pill-on';
+  $('notif-request').style.display = 'none';
+  $('notif-controls').style.display = 'block';
 }
 
-// ── Accéléromètre ────────────────────────────────────────────
-let shakeCount = 0;
-let lastAcc = { x: 0, y: 0, z: 0 };
-
-async function startAccel() {
-  const pill = document.getElementById('acc-pill');
-  const btn  = document.getElementById('btn-acc');
-  if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-    try {
-      const perm = await DeviceMotionEvent.requestPermission();
-      if (perm !== 'granted') { pill.textContent = 'REFUSÉ'; return; }
-    } catch(e) { pill.textContent = 'ERR'; return; }
-  }
-  pill.textContent = 'ON'; pill.className = 'pill pill-pulse';
-  btn.textContent = 'Actif'; btn.disabled = true;
-
-  window.addEventListener('devicemotion', e => {
-    const a = e.accelerationIncludingGravity;
-    if (!a) return;
-    const x = +(a.x||0).toFixed(1), y = +(a.y||0).toFixed(1), z = +(a.z||0).toFixed(1);
-    document.getElementById('ax').textContent = x;
-    document.getElementById('ay').textContent = y;
-    document.getElementById('az').textContent = z;
-    const delta = Math.abs(x - lastAcc.x) + Math.abs(y - lastAcc.y) + Math.abs(z - lastAcc.z);
-    if (delta > 15) {
-      shakeCount++;
-      document.getElementById('shake-num').textContent = shakeCount;
-
-    }
-    lastAcc = { x, y, z };
-  });
+// ── Service Worker ───────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('service-worker.js'));
 }
 
-// ── Gyroscope / Orientation ──────────────────────────────────
-async function startGyro() {
-  const pill = document.getElementById('gyr-pill');
-  const btn  = document.getElementById('btn-gyr');
-  if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-    try {
-      const perm = await DeviceOrientationEvent.requestPermission();
-      if (perm !== 'granted') { pill.textContent = 'REFUSÉ'; return; }
-    } catch(e) { pill.textContent = 'ERR'; return; }
-  }
-  pill.textContent = 'ON'; pill.className = 'pill pill-pulse';
-  btn.textContent = 'Actif'; btn.disabled = true;
-
-  window.addEventListener('deviceorientation', e => {
-    const alpha = Math.round(e.alpha || 0);
-    const beta  = Math.round(e.beta  || 0);
-    const gamma = Math.round(e.gamma || 0);
-    document.getElementById('oa').textContent = alpha;
-    document.getElementById('ob').textContent = beta;
-    document.getElementById('og').textContent = gamma;
-    const ball = document.getElementById('tilt-ball');
-    const area = document.querySelector('.tilt-area');
-    const r = area.offsetWidth / 2;
-    const cx = r + Math.max(-(r-12), Math.min(r-12, gamma * (r / 45)));
-    const cy = r + Math.max(-(r-12), Math.min(r-12, beta  * (r / 45)));
-    ball.style.left = cx + 'px';
-    ball.style.top  = cy + 'px';
-    ball.style.transform = 'translate(-50%, -50%)';
-  });
-}
+// Safari install hint
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 </script>
 </body>
 </html>

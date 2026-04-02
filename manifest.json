@@ -1,8 +1,8 @@
 {
-  "name": "Sensors POC v0.0.4",
+  "name": "Sensors POC",
   "short_name": "Sensors",
-  "description": "POC capteurs iPhone – Notifications, Accéléromètre, Gyroscope",
-  "version": "0.0.4",
+  "description": "POC capteurs iPhone – Jeux, Accéléromètre, Gyroscope",
+  "version": "0.1.0",
   "start_url": "/pwa-sensors2/",
   "scope": "/pwa-sensors2/",
   "display": "standalone",
