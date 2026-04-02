@@ -1,7 +1,8 @@
 {
-  "name": "Sensors POC",
+  "name": "Sensors POC v0.0.3",
   "short_name": "Sensors",
-  "description": "POC capteurs iPhone – Vibration, Accéléromètre, Gyroscope",
+  "description": "POC capteurs iPhone – Notifications, Accéléromètre, Gyroscope",
+  "version": "0.0.3",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",

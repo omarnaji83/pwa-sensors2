@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sensors-poc-v1';
+const CACHE_NAME = 'sensors-poc-v0.0.3';
 const ASSETS = [
   '/',
   '/index.html',
