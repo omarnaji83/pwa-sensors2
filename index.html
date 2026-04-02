@@ -9,7 +9,7 @@
   <meta name="theme-color" content="#0a0a0f">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <title>Sensors POC v0.0.3</title>
+  <title>Sensors POC v0.0.4</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
 
@@ -58,6 +58,19 @@
       gap: 12px;
       padding: 16px 0 24px;
     }
+
+    .header-left { display: flex; align-items: center; gap: 12px; flex: 1; }
+
+    .clock {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-align: right;
+      line-height: 1.4;
+    }
+    .clock-time { font-size: 18px; font-weight: 400; color: var(--text); display: block; }
+    .clock-date { font-size: 11px; color: var(--text-muted); display: block; }
 
     .header-icon {
       width: 40px;
@@ -295,15 +308,21 @@
 <div class="app">
 
   <header>
-    <div class="header-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="1.5" stroke-linecap="round">
-        <circle cx="12" cy="12" r="4"/>
-        <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
-      </svg>
+    <div class="header-left">
+      <div class="header-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="1.5" stroke-linecap="round">
+          <circle cx="12" cy="12" r="4"/>
+          <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Sensors POC</h1>
+        <p>iPhone · WebAPI · <span style="color:var(--blue)">v0.0.4</span></p>
+      </div>
     </div>
-    <div>
-      <h1>Sensors POC</h1>
-      <p>iPhone · WebAPI · <span style="color:var(--blue)">v0.0.3</span></p>
+    <div class="clock">
+      <span class="clock-time" id="clock-time">--:--:--</span>
+      <span class="clock-date" id="clock-date">---</span>
     </div>
   </header>
 
@@ -393,6 +412,22 @@
 </div>
 
 <script>
+// ── Horloge ──────────────────────────────────────────────────
+const DAYS = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+const MONTHS = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+
+function updateClock() {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  const ss = String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('clock-time').textContent = hh + ':' + mm + ':' + ss;
+  document.getElementById('clock-date').textContent =
+    DAYS[now.getDay()] + ' ' + now.getDate() + ' ' + MONTHS[now.getMonth()];
+}
+updateClock();
+setInterval(updateClock, 1000);
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('service-worker.js');
