@@ -470,6 +470,10 @@
         </div>
         <span style="font-size:12px;color:var(--text-muted);font-family:'DM Mono',monospace">iPhone · Safari</span>
       </div>
+      <div style="margin-top:14px">
+        <button class="btn btn-red" onclick="hardReload()">Vider le cache et recharger</button>
+        <div class="feedback" id="reload-feedback">—</div>
+      </div>
     </div>
   </div>
 
@@ -971,6 +975,25 @@ if ('Notification' in window && Notification.permission === 'granted') {
   $('notif-pill').textContent = 'ON'; $('notif-pill').className = 'pill pill-on';
   $('notif-request').style.display = 'none';
   $('notif-controls').style.display = 'block';
+}
+
+// ── Hard reload ──────────────────────────────────────────────
+async function hardReload() {
+  $('reload-feedback').textContent = '› Vidage du cache…';
+  try {
+    // Unregister all service workers
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+    // Delete all caches
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => caches.delete(k)));
+    $('reload-feedback').textContent = '› Cache vidé, rechargement…';
+    setTimeout(() => window.location.reload(true), 600);
+  } catch(e) {
+    $('reload-feedback').textContent = '› Erreur : ' + e.message;
+  }
 }
 
 // ── Service Worker ───────────────────────────────────────────
